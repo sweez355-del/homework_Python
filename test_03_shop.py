@@ -1,56 +1,50 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-
-# Регистрируем драйвер для Firefox
-driver = webdriver.Firefox()
-driver.maximize_window()
-
-# Заходим на страницу
-driver.get("https://www.saucedemo.com/")
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
 
-# Авторизуемся
-driver.find_element(By.CSS_SELECTOR, "#user-name").send_keys("standard_user")
-driver.find_element(By.CSS_SELECTOR, "#password").send_keys("secret_sauce")
-driver.find_element(By.CSS_SELECTOR, "#login-button").click()
+def test_swag_labs():
+    driver = webdriver.Firefox()
+    driver.maximize_window()
 
-# Добавляем товары в корзину
-driver.find_element(
-    By.CSS_SELECTOR, "#add-to-cart-sauce-labs-backpack"
-).click()
-driver.find_element(
-    By.CSS_SELECTOR, "#add-to-cart-sauce-labs-bolt-t-shirt"
-).click()
-driver.find_element(By.CSS_SELECTOR, "#add-to-cart-sauce-labs-onesie").click()
+    driver.get("https://www.saucedemo.com/")
 
-# Переходим в корзину
-driver.find_element(By.CSS_SELECTOR, "a.shopping_cart_link").click()
+    user_name = driver.find_element(By.ID, "user-name")
+    user_name.send_keys("standard_user")
 
-# Нажимаем чекаут
-driver.find_element(By.CSS_SELECTOR, "#checkout").click()
+    password = driver.find_element(By.ID, "password")
+    password.send_keys("secret_sauce")
 
-# Заполняем данные
+    driver.find_element(By.ID, "login-button").click()
 
-first_name = "Oleg"
-last_name = "Olegov"
-zip_code = "1212"
+    driver.find_element(By.ID, "add-to-cart-sauce-labs-backpack").click()
+    driver.find_element(By.ID, "add-to-cart-sauce-labs-bolt-t-shirt").click()
+    driver.find_element(By.ID, "add-to-cart-sauce-labs-onesie").click()
 
-driver.find_element(By.CSS_SELECTOR, "#first-name").send_keys(first_name)
-driver.find_element(By.CSS_SELECTOR, "#last-name").send_keys(last_name)
-driver.find_element(By.CSS_SELECTOR, "#postal-code").send_keys(zip_code)
-driver.find_element(By.CSS_SELECTOR, "#continue").click()
+    driver.find_element(By.CSS_SELECTOR, ".shopping_cart_link").click()
 
-# Получаем текст с суммой
-total = driver.find_element(
-    By.CSS_SELECTOR, 'div[data-test="total-label"]'
-).text
+    driver.find_element(By.ID, "checkout").click()
 
-# Делим на слова
-words = total.split()
+    first_name = driver.find_element(By.ID, "first-name")
+    first_name.send_keys("Андрей")
 
-# Закрываем драйвер
-driver.quit()
+    last_name = driver.find_element(By.ID, "last-name")
+    last_name.send_keys("Андреянов")
 
+    post_code = driver.find_element(By.ID, "postal-code")
+    post_code.send_keys("236029")
 
-def test_total_purchase():
-    assert words[1] == "$58.29"
+    driver.find_element(By.ID, "continue").click()
+
+    wait = WebDriverWait(driver, 10)
+    wait.until(
+        EC.presence_of_element_located(
+            (By.CSS_SELECTOR, ".summary_total_label")))
+
+    total_price = driver.find_element(
+        By.CSS_SELECTOR, ".summary_total_label").text
+
+    assert total_price == "$58.29", f"Ожидалось $58.29, получено {total_price}"
+
+    driver.quit()
